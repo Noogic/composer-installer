@@ -2,25 +2,40 @@
 
 namespace Noogic\ComposerInstaller;
 
-use Symfony\Component\Process\Process;
-
 class ComposerInstaller
 {
-    public function requirePackage(string $package)
+    private $processHandler;
+    protected $composer;
+    private $path;
+
+    public function __construct(ProcessHandlerInterface $processHandler, string $path)
     {
-        $this->executeCommand($this->findComposer().' require '.$package);
+        $this->processHandler = $processHandler;
+        $this->composer = $this->findComposer();
+        $this->path = $path;
     }
 
-    public function requirePackages(array $packages)
+    public function requirePackages($packages)
     {
+        $packages = is_array($packages) ? $packages : [$packages];
+
         foreach ($packages as $package) {
-            $this->requirePackage($package);
+            $this->processHandler->execute($this->composer.' require '.$package, $this->path);
+        }
+    }
+
+    public function requireDevPackages($packages)
+    {
+        $packages = is_array($packages) ? $packages : [$packages];
+
+        foreach ($packages as $package) {
+            $this->processHandler->execute($this->composer.' require --dev '.$package, $this->path);
         }
     }
 
     public function addPrivateRepositories($repositories)
     {
-        $projectComposerPath = getcwd().'/composer.json';
+        $projectComposerPath = $this->path.'/composer.json';
         $content = file_get_contents($projectComposerPath);
         $data = json_decode($content, true);
 
@@ -36,9 +51,27 @@ class ComposerInstaller
         file_put_contents($projectComposerPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
-    public function update()
+    public function addPathRepositories($repositories)
     {
-        $this->executeCommand($this->findComposer().' update');
+        $repositories = is_array($repositories) ? $repositories : [$repositories];
+        $config = $this->getComposerConfig();
+
+        foreach ($repositories as $repository) {
+            $config['repositories'][] = [
+                'type' => 'path',
+                'url' => $repository,
+                'options' => [
+                    'symlink' => true
+                ],
+            ];
+        }
+
+        $this->saveComposerConfig($config);
+    }
+
+    public function createDistProject(string $dist)
+    {
+        $this->processHandler->execute('composer create-project --prefer-dist '.$dist.' .', $this->path);
     }
 
     protected function findComposer(): string
@@ -52,17 +85,17 @@ class ComposerInstaller
         return 'composer';
     }
 
-    private function executeCommand(string $command, string $directory = null, array $options = []): Process
+    protected function getComposerConfig(): array
     {
-        $directory = $directory ?: getcwd();
+        $projectComposerPath = $this->path.'/composer.json';
+        $content = file_get_contents($projectComposerPath);
 
-        foreach ($options as $option) {
-            $command .= ' '.$option;
-        }
+        return json_decode($content, true);
+    }
 
-        $process = Process::fromShellCommandline($command, $directory, null, null, null);
-        $process->run();
-
-        return $process;
+    protected function saveComposerConfig(array $config)
+    {
+        $path = $this->path.'/composer.json';
+        file_put_contents($path, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 }
