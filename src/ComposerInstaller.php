@@ -36,6 +36,11 @@ class ComposerInstaller
         file_put_contents($projectComposerPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
+    public function update()
+    {
+        $this->executeCommand($this->findComposer().' update');
+    }
+
     protected function findComposer(): string
     {
         $composerPath = getcwd().'/composer.phar';
