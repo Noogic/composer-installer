@@ -1,0 +1,42 @@
+{
+    "name": "noogic/composer-installer",
+    "description": "Install composer packages from php code",
+    "keywords": [
+        "noogic",
+        "composer-installer"
+    ],
+    "homepage": "https://github.com/noogic/composer-installer",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Joan Morell",
+            "email": "joanmorellandres@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Noogic\\ComposerInstaller\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Noogic\\ComposerInstaller\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
