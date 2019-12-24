@@ -66,11 +66,6 @@ class ComposerInstaller
         $this->saveComposerConfig($config);
     }
 
-    public function addConfig($configValues)
-    {
-        $config = $this->getComposerConfig();
-    }
-
     public function addScripts(string $key, array $value)
     {
         $config = $this->getComposerConfig();
