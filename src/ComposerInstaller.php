@@ -35,20 +35,17 @@ class ComposerInstaller
 
     public function addPrivateRepositories($repositories)
     {
-        $projectComposerPath = $this->path.'/composer.json';
-        $content = file_get_contents($projectComposerPath);
-        $data = json_decode($content, true);
-
+        $config = $this->getComposerConfig();
         $repositories = is_array($repositories) ? $repositories : [$repositories];
 
         foreach ($repositories as $repository) {
-            $data['repositories'][] = [
+            $config['repositories'][] = [
                 'type' => 'vcs',
                 'url' => $repository,
             ];
         }
 
-        file_put_contents($projectComposerPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->saveComposerConfig($config);
     }
 
     public function addPathRepositories($repositories)
@@ -65,6 +62,22 @@ class ComposerInstaller
                 ],
             ];
         }
+
+        $this->saveComposerConfig($config);
+    }
+
+    public function addConfig($configValues)
+    {
+        $config = $this->getComposerConfig();
+    }
+
+    public function addScripts(string $key, array $value)
+    {
+        $config = $this->getComposerConfig();
+        $newScripts = [$key => $value];
+
+        $scripts = array_merge_recursive($config['scripts'], $newScripts);
+        $config['scripts'] = $scripts;
 
         $this->saveComposerConfig($config);
     }
